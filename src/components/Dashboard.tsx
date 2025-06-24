@@ -232,32 +232,23 @@ const Dashboard = () => {
           </Alert>
         )}
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Sources and Destinations Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sources */}
-          <div className="xl:col-span-1">
-            <SourceList
-              sources={sources}
-              selectedSources={selectedSources}
-              onSelectionChange={handleSourceSelection}
-              loading={loading}
-            />
-          </div>
+          <SourceList
+            sources={sources}
+            selectedSources={selectedSources}
+            onSelectionChange={handleSourceSelection}
+            loading={loading}
+          />
 
           {/* Destinations */}
-          <div className="xl:col-span-1">
-            <DestinationList
-              destinations={destinations}
-              selectedDestinations={selectedDestinations}
-              onSelectionChange={handleDestinationSelection}
-              loading={loading}
-            />
-          </div>
-
-          {/* Route History */}
-          <div className="xl:col-span-1">
-            <RouteHistory routes={routes} />
-          </div>
+          <DestinationList
+            destinations={destinations}
+            selectedDestinations={selectedDestinations}
+            onSelectionChange={handleDestinationSelection}
+            loading={loading}
+          />
         </div>
 
         {/* Selection Summary and Route Button */}
@@ -287,6 +278,9 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Route History */}
+        <RouteHistory routes={routes} />
       </div>
     </div>
   );
