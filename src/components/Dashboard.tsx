@@ -21,7 +21,7 @@ const Dashboard = () => {
 
   const { toast } = useToast();
 
-  // Fixed XML data
+  // Extended XML data with more sources and destinations
   const fixedXMLData = `<data>
   <sources>
     <source>
@@ -32,6 +32,22 @@ const Dashboard = () => {
       <name>Source B</name>
       <region>Europe</region>
     </source>
+    <source>
+      <name>Source C</name>
+      <region>Asia-Pacific</region>
+    </source>
+    <source>
+      <name>Source D</name>
+      <region>Canada</region>
+    </source>
+    <source>
+      <name>Source E</name>
+      <region>South America</region>
+    </source>
+    <source>
+      <name>Source F</name>
+      <region>Africa</region>
+    </source>
   </sources>
   <destinations>
     <destination>
@@ -41,6 +57,30 @@ const Dashboard = () => {
     <destination>
       <name>Destination Y</name>
       <region>US-West</region>
+    </destination>
+    <destination>
+      <name>Destination Z</name>
+      <region>Australia</region>
+    </destination>
+    <destination>
+      <name>Destination Alpha</name>
+      <region>Middle East</region>
+    </destination>
+    <destination>
+      <name>Destination Beta</name>
+      <region>Scandinavia</region>
+    </destination>
+    <destination>
+      <name>Destination Gamma</name>
+      <region>Southeast Asia</region>
+    </destination>
+    <destination>
+      <name>Destination Delta</name>
+      <region>Central Europe</region>
+    </destination>
+    <destination>
+      <name>Destination Epsilon</name>
+      <region>UK</region>
     </destination>
   </destinations>
 </data>`;
@@ -78,7 +118,7 @@ const Dashboard = () => {
   const handleSourceSelection = (sourceId: string, checked: boolean) => {
     setSelectedSources(prev => 
       checked 
-        ? [...prev, sourceId]
+        ? [sourceId] // Only allow one source selection
         : prev.filter(id => id !== sourceId)
     );
   };
@@ -95,7 +135,7 @@ const Dashboard = () => {
     if (selectedSources.length === 0 || selectedDestinations.length === 0) {
       toast({
         title: "Selection Required",
-        description: "Please select at least one source and one destination.",
+        description: "Please select one source and at least one destination.",
         variant: "destructive",
       });
       return;
@@ -120,7 +160,7 @@ const Dashboard = () => {
 
       toast({
         title: "Route Created",
-        description: `Route prepared with ${selectedSourceItems.length} sources and ${selectedDestinationItems.length} destinations.`,
+        description: `Route prepared from ${selectedSourceItems[0]?.name} to ${selectedDestinationItems.length} destination(s).`,
       });
 
       // Clear selections after successful routing
@@ -145,7 +185,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold text-gray-900">Routing Dashboard</h1>
-          <p className="text-lg text-gray-600">Select sources and destinations to create routes</p>
+          <p className="text-lg text-gray-600">Select one source and multiple destinations to create routes</p>
         </div>
 
         {/* Error Alert */}
@@ -182,7 +222,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-6 text-sm text-gray-600">
                 <span className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                  {selectedSources.length} sources selected
+                  {selectedSources.length} source selected
                 </span>
                 <span className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-500 rounded"></div>
