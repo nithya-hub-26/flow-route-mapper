@@ -1,20 +1,21 @@
-
 import { useState, useEffect } from "react";
-import { LocationItem, RouteRequest } from "@/types/dashboard";
+import { LocationItem, RouteRequest, Route } from "@/types/dashboard";
 import { parseXMLData } from "@/utils/xmlParser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SourceList from "./SourceList";
 import DestinationList from "./DestinationList";
+import RouteHistory from "./RouteHistory";
 import { useToast } from "@/hooks/use-toast";
-import { Route, AlertCircle } from "lucide-react";
+import { Route as RouteIcon, AlertCircle } from "lucide-react";
 
 const Dashboard = () => {
   const [sources, setSources] = useState<LocationItem[]>([]);
   const [destinations, setDestinations] = useState<LocationItem[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(false);
   const [routing, setRouting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +86,27 @@ const Dashboard = () => {
   </destinations>
 </data>`;
 
+  // Load routes from localStorage
+  const loadRoutes = () => {
+    try {
+      const savedRoutes = localStorage.getItem('dashboard-routes');
+      if (savedRoutes) {
+        setRoutes(JSON.parse(savedRoutes));
+      }
+    } catch (error) {
+      console.error('Error loading routes from localStorage:', error);
+    }
+  };
+
+  // Save routes to localStorage
+  const saveRoutes = (newRoutes: Route[]) => {
+    try {
+      localStorage.setItem('dashboard-routes', JSON.stringify(newRoutes));
+    } catch (error) {
+      console.error('Error saving routes to localStorage:', error);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
@@ -113,6 +135,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData();
+    loadRoutes();
   }, []);
 
   const handleSourceSelection = (sourceId: string, checked: boolean) => {
@@ -156,6 +179,19 @@ const Dashboard = () => {
         destinations: selectedDestinationItems,
       };
 
+      // Create new route for history
+      const newRoute: Route = {
+        id: `route-${Date.now()}`,
+        source: selectedSourceItems[0],
+        destinations: selectedDestinationItems,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Add to routes and save to localStorage
+      const updatedRoutes = [newRoute, ...routes];
+      setRoutes(updatedRoutes);
+      saveRoutes(updatedRoutes);
+
       console.log("Route request prepared:", routeRequest);
 
       toast({
@@ -197,22 +233,31 @@ const Dashboard = () => {
         )}
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Sources */}
-          <SourceList
-            sources={sources}
-            selectedSources={selectedSources}
-            onSelectionChange={handleSourceSelection}
-            loading={loading}
-          />
+          <div className="xl:col-span-1">
+            <SourceList
+              sources={sources}
+              selectedSources={selectedSources}
+              onSelectionChange={handleSourceSelection}
+              loading={loading}
+            />
+          </div>
 
           {/* Destinations */}
-          <DestinationList
-            destinations={destinations}
-            selectedDestinations={selectedDestinations}
-            onSelectionChange={handleDestinationSelection}
-            loading={loading}
-          />
+          <div className="xl:col-span-1">
+            <DestinationList
+              destinations={destinations}
+              selectedDestinations={selectedDestinations}
+              onSelectionChange={handleDestinationSelection}
+              loading={loading}
+            />
+          </div>
+
+          {/* Route History */}
+          <div className="xl:col-span-1">
+            <RouteHistory routes={routes} />
+          </div>
         </div>
 
         {/* Selection Summary and Route Button */}
@@ -236,7 +281,7 @@ const Dashboard = () => {
                 size="lg"
                 className="w-full sm:w-auto"
               >
-                <Route className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
+                <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
                 {routing ? 'Creating Route...' : 'Create Route'}
               </Button>
             </div>

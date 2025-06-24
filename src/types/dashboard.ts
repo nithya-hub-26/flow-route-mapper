@@ -14,3 +14,10 @@ export interface DashboardData {
   sources: LocationItem[];
   destinations: LocationItem[];
 }
+
+export interface Route {
+  id: string;
+  source: LocationItem;
+  destinations: LocationItem[];
+  createdAt: string;
+}
