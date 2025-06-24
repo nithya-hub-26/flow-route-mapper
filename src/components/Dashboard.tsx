@@ -1,18 +1,14 @@
 
 import { useState, useEffect } from "react";
 import { LocationItem, RouteRequest } from "@/types/dashboard";
-import { fetchXMLData, sendRouteRequest } from "@/utils/api";
 import { parseXMLData } from "@/utils/xmlParser";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import SourceList from "./SourceList";
 import DestinationList from "./DestinationList";
 import { useToast } from "@/hooks/use-toast";
-import { Route, RefreshCw, Settings, AlertCircle } from "lucide-react";
+import { Route, AlertCircle } from "lucide-react";
 
 const Dashboard = () => {
   const [sources, setSources] = useState<LocationItem[]>([]);
@@ -21,77 +17,40 @@ const Dashboard = () => {
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [routing, setRouting] = useState(false);
-  const [xmlUrl, setXmlUrl] = useState("https://httpbin.org/xml");
-  const [routeUrl, setRouteUrl] = useState("https://httpbin.org/post");
   const [error, setError] = useState<string | null>(null);
 
   const { toast } = useToast();
 
-  // Mock XML data for demo purposes
-  const mockXMLData = `<?xml version="1.0" encoding="UTF-8"?>
-<data>
+  // Fixed XML data
+  const fixedXMLData = `<data>
   <sources>
     <source>
-      <name>New York Hub</name>
-      <region>North America</region>
+      <name>Source A</name>
+      <region>US-East</region>
     </source>
     <source>
-      <name>London Gateway</name>
+      <name>Source B</name>
       <region>Europe</region>
-    </source>
-    <source>
-      <name>Tokyo Central</name>
-      <region>Asia Pacific</region>
-    </source>
-    <source>
-      <name>Sydney Port</name>
-      <region>Oceania</region>
     </source>
   </sources>
   <destinations>
     <destination>
-      <name>Los Angeles Terminal</name>
-      <region>North America</region>
-    </destination>
-    <destination>
-      <name>Frankfurt Hub</name>
-      <region>Europe</region>
-    </destination>
-    <destination>
-      <name>Singapore Gateway</name>
-      <region>Asia Pacific</region>
-    </destination>
-    <destination>
-      <name>Mumbai Port</name>
+      <name>Destination X</name>
       <region>Asia</region>
     </destination>
     <destination>
-      <name>Dubai International</name>
-      <region>Middle East</region>
+      <name>Destination Y</name>
+      <region>US-West</region>
     </destination>
   </destinations>
 </data>`;
 
-  const fetchData = async () => {
+  const loadData = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      let xmlData: string;
-      
-      try {
-        xmlData = await fetchXMLData(xmlUrl);
-      } catch (fetchError) {
-        console.log("Using mock data due to fetch error:", fetchError);
-        xmlData = mockXMLData;
-        toast({
-          title: "Using Demo Data",
-          description: "Unable to fetch from external server, using sample data instead.",
-          variant: "default",
-        });
-      }
-
-      const parsedData = parseXMLData(xmlData);
+      const parsedData = parseXMLData(fixedXMLData);
       setSources(parsedData.sources);
       setDestinations(parsedData.destinations);
       
@@ -113,7 +72,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    loadData();
   }, []);
 
   const handleSourceSelection = (sourceId: string, checked: boolean) => {
@@ -157,16 +116,12 @@ const Dashboard = () => {
         destinations: selectedDestinationItems,
       };
 
-      console.log("Sending route request:", routeRequest);
+      console.log("Route request prepared:", routeRequest);
 
-      const response = await sendRouteRequest(routeRequest, routeUrl);
-      
       toast({
-        title: "Route Request Sent",
-        description: `Successfully sent route with ${selectedSourceItems.length} sources and ${selectedDestinationItems.length} destinations.`,
+        title: "Route Created",
+        description: `Route prepared with ${selectedSourceItems.length} sources and ${selectedDestinationItems.length} destinations.`,
       });
-
-      console.log("Route response:", response);
 
       // Clear selections after successful routing
       setSelectedSources([]);
@@ -192,42 +147,6 @@ const Dashboard = () => {
           <h1 className="text-4xl font-bold text-gray-900">Routing Dashboard</h1>
           <p className="text-lg text-gray-600">Select sources and destinations to create routes</p>
         </div>
-
-        {/* Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="xmlUrl">XML Data URL</Label>
-                <Input
-                  id="xmlUrl"
-                  value={xmlUrl}
-                  onChange={(e) => setXmlUrl(e.target.value)}
-                  placeholder="Enter XML data URL"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="routeUrl">Route API Endpoint</Label>
-                <Input
-                  id="routeUrl"
-                  value={routeUrl}
-                  onChange={(e) => setRouteUrl(e.target.value)}
-                  placeholder="Enter route API endpoint"
-                />
-              </div>
-            </div>
-            <Button onClick={fetchData} disabled={loading} className="w-full md:w-auto">
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Loading...' : 'Refresh Data'}
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Error Alert */}
         {error && (
