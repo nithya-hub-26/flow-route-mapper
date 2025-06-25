@@ -9,7 +9,6 @@ import DestinationList from "./DestinationList";
 import RouteHistory from "./RouteHistory";
 import { useToast } from "@/hooks/use-toast";
 import { Route as RouteIcon, AlertCircle } from "lucide-react";
-
 const Dashboard = () => {
   const [sources, setSources] = useState<LocationItem[]>([]);
   const [destinations, setDestinations] = useState<LocationItem[]>([]);
@@ -19,8 +18,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [routing, setRouting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Extended XML data with more sources and destinations
   const fixedXMLData = `<data>
@@ -106,19 +106,16 @@ const Dashboard = () => {
       console.error('Error saving routes to localStorage:', error);
     }
   };
-
   const loadData = async () => {
     setLoading(true);
     setError(null);
-    
     try {
       const parsedData = parseXMLData(fixedXMLData);
       setSources(parsedData.sources);
       setDestinations(parsedData.destinations);
-      
       toast({
         title: "Data Loaded",
-        description: `Loaded ${parsedData.sources.length} sources and ${parsedData.destinations.length} destinations.`,
+        description: `Loaded ${parsedData.sources.length} sources and ${parsedData.destinations.length} destinations.`
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -126,57 +123,39 @@ const Dashboard = () => {
       toast({
         title: "Error",
         description: errorMessage,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadData();
     loadRoutes();
   }, []);
-
   const handleSourceSelection = (sourceId: string, checked: boolean) => {
-    setSelectedSources(prev => 
-      checked 
-        ? [sourceId] // Only allow one source selection
-        : prev.filter(id => id !== sourceId)
-    );
+    setSelectedSources(prev => checked ? [sourceId] // Only allow one source selection
+    : prev.filter(id => id !== sourceId));
   };
-
   const handleDestinationSelection = (destinationId: string, checked: boolean) => {
-    setSelectedDestinations(prev => 
-      checked 
-        ? [...prev, destinationId]
-        : prev.filter(id => id !== destinationId)
-    );
+    setSelectedDestinations(prev => checked ? [...prev, destinationId] : prev.filter(id => id !== destinationId));
   };
-
   const handleRoute = async () => {
     if (selectedSources.length === 0 || selectedDestinations.length === 0) {
       toast({
         title: "Selection Required",
         description: "Please select one source and at least one destination.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setRouting(true);
-
     try {
-      const selectedSourceItems = sources.filter(source => 
-        selectedSources.includes(source.id)
-      );
-      const selectedDestinationItems = destinations.filter(destination => 
-        selectedDestinations.includes(destination.id)
-      );
-
+      const selectedSourceItems = sources.filter(source => selectedSources.includes(source.id));
+      const selectedDestinationItems = destinations.filter(destination => selectedDestinations.includes(destination.id));
       const routeRequest: RouteRequest = {
         sources: selectedSourceItems,
-        destinations: selectedDestinationItems,
+        destinations: selectedDestinationItems
       };
 
       // Create new route for history
@@ -184,71 +163,54 @@ const Dashboard = () => {
         id: `route-${Date.now()}`,
         source: selectedSourceItems[0],
         destinations: selectedDestinationItems,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
 
       // Add to routes and save to localStorage
       const updatedRoutes = [newRoute, ...routes];
       setRoutes(updatedRoutes);
       saveRoutes(updatedRoutes);
-
       console.log("Route request prepared:", routeRequest);
-
       toast({
         title: "Route Created",
-        description: `Route prepared from ${selectedSourceItems[0]?.name} to ${selectedDestinationItems.length} destination(s).`,
+        description: `Route prepared from ${selectedSourceItems[0]?.name} to ${selectedDestinationItems.length} destination(s).`
       });
 
       // Clear selections after successful routing
       setSelectedSources([]);
       setSelectedDestinations([]);
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Route request failed";
       toast({
         title: "Route Failed",
         description: errorMessage,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setRouting(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900">Routing Dashboard</h1>
+          <h1 className="text-4xl font-bold text-gray-900">Video Streaming Routing Dashboard</h1>
           <p className="text-lg text-gray-600">Select one source and multiple destinations to create routes</p>
         </div>
 
         {/* Error Alert */}
-        {error && (
-          <Alert variant="destructive">
+        {error && <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+          </Alert>}
 
         {/* Sources and Destinations Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sources */}
-          <SourceList
-            sources={sources}
-            selectedSources={selectedSources}
-            onSelectionChange={handleSourceSelection}
-            loading={loading}
-          />
+          <SourceList sources={sources} selectedSources={selectedSources} onSelectionChange={handleSourceSelection} loading={loading} />
 
           {/* Destinations */}
-          <DestinationList
-            destinations={destinations}
-            selectedDestinations={selectedDestinations}
-            onSelectionChange={handleDestinationSelection}
-            loading={loading}
-          />
+          <DestinationList destinations={destinations} selectedDestinations={selectedDestinations} onSelectionChange={handleDestinationSelection} loading={loading} />
         </div>
 
         {/* Selection Summary and Route Button */}
@@ -266,12 +228,7 @@ const Dashboard = () => {
                 </span>
               </div>
               
-              <Button
-                onClick={handleRoute}
-                disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading}
-                size="lg"
-                className="w-full sm:w-auto"
-              >
+              <Button onClick={handleRoute} disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading} size="lg" className="w-full sm:w-auto">
                 <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
                 {routing ? 'Creating Route...' : 'Create Route'}
               </Button>
@@ -282,8 +239,6 @@ const Dashboard = () => {
         {/* Route History */}
         <RouteHistory routes={routes} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Dashboard;
