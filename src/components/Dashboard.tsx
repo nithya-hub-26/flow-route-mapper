@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { LocationItem, RouteRequest, Route } from "@/types/dashboard";
 import { parseXMLData } from "@/utils/xmlParser";
@@ -207,7 +208,7 @@ const Dashboard = () => {
           loading={loading}
         />
         
-        <main className="flex-1 flex flex-col p-6">
+        <div className="flex-1 flex flex-col p-6 ml-0">
           {/* Header */}
           <div className="text-center space-y-2 mb-6">
             <h1 className="text-4xl font-bold text-gray-900">Video Streaming Routing Dashboard</h1>
@@ -252,7 +253,7 @@ const Dashboard = () => {
 
           {/* Route History Panel */}
           <RouteHistoryPanel routes={routes} onDeleteRoute={handleDeleteRoute} />
-        </main>
+        </div>
       </div>
     </SidebarProvider>
   );

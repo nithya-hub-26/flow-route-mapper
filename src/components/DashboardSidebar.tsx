@@ -4,14 +4,7 @@ import { LocationItem } from "@/types/dashboard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
@@ -58,34 +51,34 @@ const DashboardSidebar = ({
   );
 
   return (
-    <Sidebar className="w-[35%] min-w-[400px] border-r border-gray-200">
-      <SidebarHeader className="p-4 border-b border-gray-200">
+    <div className="w-[35%] min-w-[400px] border-r border-gray-200 bg-white h-screen overflow-y-auto">
+      <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <Code2 className="h-6 w-6 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">XCode Templates</h2>
         </div>
-      </SidebarHeader>
+      </div>
       
-      <SidebarContent className="p-4">
+      <div className="p-4">
         {/* Sources Section */}
-        <SidebarGroup>
+        <div className="mb-6">
           <Collapsible open={sourcesExpanded} onOpenChange={setSourcesExpanded}>
             <CollapsibleTrigger className="w-full">
-              <SidebarGroupLabel className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md cursor-pointer">
+              <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md cursor-pointer">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-blue-600" />
-                  <span>Sources ({sources.length})</span>
+                  <span className="font-medium">Sources ({sources.length})</span>
                 </div>
                 {sourcesExpanded ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
                   <ChevronRight className="h-4 w-4" />
                 )}
-              </SidebarGroupLabel>
+              </div>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
-              <SidebarGroupContent className="mt-2">
+              <div className="mt-2">
                 {loading ? (
                   <LoadingSkeleton />
                 ) : (
@@ -111,30 +104,30 @@ const DashboardSidebar = ({
                     ))}
                   </RadioGroup>
                 )}
-              </SidebarGroupContent>
+              </div>
             </CollapsibleContent>
           </Collapsible>
-        </SidebarGroup>
+        </div>
 
         {/* Destinations Section */}
-        <SidebarGroup className="mt-6">
+        <div>
           <Collapsible open={destinationsExpanded} onOpenChange={setDestinationsExpanded}>
             <CollapsibleTrigger className="w-full">
-              <SidebarGroupLabel className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md cursor-pointer">
+              <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md cursor-pointer">
                 <div className="flex items-center gap-2">
                   <Navigation className="h-4 w-4 text-green-600" />
-                  <span>Destinations ({destinations.length})</span>
+                  <span className="font-medium">Destinations ({destinations.length})</span>
                 </div>
                 {destinationsExpanded ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
                   <ChevronRight className="h-4 w-4" />
                 )}
-              </SidebarGroupLabel>
+              </div>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
-              <SidebarGroupContent className="mt-2">
+              <div className="mt-2">
                 {loading ? (
                   <LoadingSkeleton />
                 ) : (
@@ -159,12 +152,12 @@ const DashboardSidebar = ({
                     ))}
                   </div>
                 )}
-              </SidebarGroupContent>
+              </div>
             </CollapsibleContent>
           </Collapsible>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+        </div>
+      </div>
+    </div>
   );
 };
 
