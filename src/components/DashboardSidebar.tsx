@@ -4,13 +4,14 @@ import { LocationItem } from "@/types/dashboard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Code2, MapPin, Navigation } from "lucide-react";
+import { ChevronDown, ChevronRight, Code2, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
 
 interface DashboardSidebarProps {
   sources: LocationItem[];
@@ -19,7 +20,9 @@ interface DashboardSidebarProps {
   selectedDestinations: string[];
   onSourceSelection: (sourceId: string, checked: boolean) => void;
   onDestinationSelection: (destinationId: string, checked: boolean) => void;
+  onCreateRoute: () => void;
   loading?: boolean;
+  routing?: boolean;
 }
 
 const DashboardSidebar = ({
@@ -29,7 +32,9 @@ const DashboardSidebar = ({
   selectedDestinations,
   onSourceSelection,
   onDestinationSelection,
-  loading
+  onCreateRoute,
+  loading,
+  routing
 }: DashboardSidebarProps) => {
   const [sourcesExpanded, setSourcesExpanded] = useState(true);
   const [destinationsExpanded, setDestinationsExpanded] = useState(true);
@@ -110,7 +115,7 @@ const DashboardSidebar = ({
         </div>
 
         {/* Destinations Section */}
-        <div>
+        <div className="mb-6">
           <Collapsible open={destinationsExpanded} onOpenChange={setDestinationsExpanded}>
             <CollapsibleTrigger className="w-full">
               <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md cursor-pointer">
@@ -156,6 +161,34 @@ const DashboardSidebar = ({
             </CollapsibleContent>
           </Collapsible>
         </div>
+
+        {/* Create Route Section */}
+        <Card>
+          <CardContent className="pt-4">
+            <div className="space-y-4">
+              <div className="flex items-center gap-6 text-sm text-gray-600">
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                  {selectedSources.length} source selected
+                </span>
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded"></div>
+                  {selectedDestinations.length} destinations selected
+                </span>
+              </div>
+              
+              <Button 
+                onClick={onCreateRoute} 
+                disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading} 
+                size="lg" 
+                className="w-full"
+              >
+                <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
+                {routing ? 'Creating Route...' : 'Create Route'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

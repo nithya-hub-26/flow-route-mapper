@@ -1,12 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { LocationItem, RouteRequest, Route } from "@/types/dashboard";
 import { parseXMLData } from "@/utils/xmlParser";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Route as RouteIcon, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardSidebar from "./DashboardSidebar";
 import RouteHistoryPanel from "./RouteHistoryPanel";
@@ -205,10 +202,12 @@ const Dashboard = () => {
           selectedDestinations={selectedDestinations}
           onSourceSelection={handleSourceSelection}
           onDestinationSelection={handleDestinationSelection}
+          onCreateRoute={handleRoute}
           loading={loading}
+          routing={routing}
         />
         
-        <div className="flex-1 flex flex-col p-6 ml-0">
+        <div className="flex-1 flex flex-col p-6">
           {/* Header */}
           <div className="text-center space-y-2 mb-6">
             <h1 className="text-4xl font-bold text-gray-900">Video Streaming Routing Dashboard</h1>
@@ -222,34 +221,6 @@ const Dashboard = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          {/* Selection Summary and Route Button */}
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-6 text-sm text-gray-600">
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                    {selectedSources.length} source selected
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
-                    {selectedDestinations.length} destinations selected
-                  </span>
-                </div>
-                
-                <Button 
-                  onClick={handleRoute} 
-                  disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading} 
-                  size="lg" 
-                  className="w-full sm:w-auto"
-                >
-                  <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
-                  {routing ? 'Creating Route...' : 'Create Route'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Route History Panel */}
           <RouteHistoryPanel routes={routes} onDeleteRoute={handleDeleteRoute} />
