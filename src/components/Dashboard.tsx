@@ -4,11 +4,12 @@ import { parseXMLData } from "@/utils/xmlParser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import SourceList from "./SourceList";
-import DestinationList from "./DestinationList";
-import RouteHistory from "./RouteHistory";
 import { useToast } from "@/hooks/use-toast";
 import { Route as RouteIcon, AlertCircle } from "lucide-react";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import DashboardSidebar from "./DashboardSidebar";
+import RouteHistoryPanel from "./RouteHistoryPanel";
+
 const Dashboard = () => {
   const [sources, setSources] = useState<LocationItem[]>([]);
   const [destinations, setDestinations] = useState<LocationItem[]>([]);
@@ -18,9 +19,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [routing, setRouting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
 
   // Extended XML data with more sources and destinations
   const fixedXMLData = `<data>
@@ -86,7 +85,6 @@ const Dashboard = () => {
   </destinations>
 </data>`;
 
-  // Load routes from localStorage
   const loadRoutes = () => {
     try {
       const savedRoutes = localStorage.getItem('dashboard-routes');
@@ -98,7 +96,6 @@ const Dashboard = () => {
     }
   };
 
-  // Save routes to localStorage
   const saveRoutes = (newRoutes: Route[]) => {
     try {
       localStorage.setItem('dashboard-routes', JSON.stringify(newRoutes));
@@ -106,6 +103,7 @@ const Dashboard = () => {
       console.error('Error saving routes to localStorage:', error);
     }
   };
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
@@ -129,17 +127,22 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadData();
     loadRoutes();
   }, []);
+
   const handleSourceSelection = (sourceId: string, checked: boolean) => {
-    setSelectedSources(prev => checked ? [sourceId] // Only allow one source selection
-    : prev.filter(id => id !== sourceId));
+    setSelectedSources(prev => checked ? [sourceId] : prev.filter(id => id !== sourceId));
   };
+
   const handleDestinationSelection = (destinationId: string, checked: boolean) => {
-    setSelectedDestinations(prev => checked ? [...prev, destinationId] : prev.filter(id => id !== destinationId));
+    setSelectedDestinations(prev => 
+      checked ? [...prev, destinationId] : prev.filter(id => id !== destinationId)
+    );
   };
+
   const handleRoute = async () => {
     if (selectedSources.length === 0 || selectedDestinations.length === 0) {
       toast({
@@ -149,16 +152,12 @@ const Dashboard = () => {
       });
       return;
     }
+
     setRouting(true);
     try {
       const selectedSourceItems = sources.filter(source => selectedSources.includes(source.id));
       const selectedDestinationItems = destinations.filter(destination => selectedDestinations.includes(destination.id));
-      const routeRequest: RouteRequest = {
-        sources: selectedSourceItems,
-        destinations: selectedDestinationItems
-      };
 
-      // Create new route for history
       const newRoute: Route = {
         id: `route-${Date.now()}`,
         source: selectedSourceItems[0],
@@ -166,17 +165,15 @@ const Dashboard = () => {
         createdAt: new Date().toISOString()
       };
 
-      // Add to routes and save to localStorage
       const updatedRoutes = [newRoute, ...routes];
       setRoutes(updatedRoutes);
       saveRoutes(updatedRoutes);
-      console.log("Route request prepared:", routeRequest);
+
       toast({
         title: "Route Created",
         description: `Route prepared from ${selectedSourceItems[0]?.name} to ${selectedDestinationItems.length} destination(s).`
       });
 
-      // Clear selections after successful routing
       setSelectedSources([]);
       setSelectedDestinations([]);
     } catch (error) {
@@ -190,55 +187,75 @@ const Dashboard = () => {
       setRouting(false);
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900">Video Streaming Routing Dashboard</h1>
-          <p className="text-lg text-gray-600">Select one source and multiple destinations to create routes</p>
-        </div>
 
-        {/* Error Alert */}
-        {error && <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>}
+  const handleDeleteRoute = (routeId: string) => {
+    const updatedRoutes = routes.filter(route => route.id !== routeId);
+    setRoutes(updatedRoutes);
+    saveRoutes(updatedRoutes);
+  };
 
-        {/* Sources and Destinations Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Sources */}
-          <SourceList sources={sources} selectedSources={selectedSources} onSelectionChange={handleSourceSelection} loading={loading} />
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
+        <DashboardSidebar
+          sources={sources}
+          destinations={destinations}
+          selectedSources={selectedSources}
+          selectedDestinations={selectedDestinations}
+          onSourceSelection={handleSourceSelection}
+          onDestinationSelection={handleDestinationSelection}
+          loading={loading}
+        />
+        
+        <main className="flex-1 flex flex-col p-6">
+          {/* Header */}
+          <div className="text-center space-y-2 mb-6">
+            <h1 className="text-4xl font-bold text-gray-900">Video Streaming Routing Dashboard</h1>
+            <p className="text-lg text-gray-600">Select one source and multiple destinations to create routes</p>
+          </div>
 
-          {/* Destinations */}
-          <DestinationList destinations={destinations} selectedDestinations={selectedDestinations} onSelectionChange={handleDestinationSelection} loading={loading} />
-        </div>
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        {/* Selection Summary and Route Button */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-6 text-sm text-gray-600">
-                <span className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                  {selectedSources.length} source selected
-                </span>
-                <span className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                  {selectedDestinations.length} destinations selected
-                </span>
+          {/* Selection Summary and Route Button */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-6 text-sm text-gray-600">
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    {selectedSources.length} source selected
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    {selectedDestinations.length} destinations selected
+                  </span>
+                </div>
+                
+                <Button 
+                  onClick={handleRoute} 
+                  disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading} 
+                  size="lg" 
+                  className="w-full sm:w-auto"
+                >
+                  <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
+                  {routing ? 'Creating Route...' : 'Create Route'}
+                </Button>
               </div>
-              
-              <Button onClick={handleRoute} disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading} size="lg" className="w-full sm:w-auto">
-                <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
-                {routing ? 'Creating Route...' : 'Create Route'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Route History */}
-        <RouteHistory routes={routes} />
+          {/* Route History Panel */}
+          <RouteHistoryPanel routes={routes} onDeleteRoute={handleDeleteRoute} />
+        </main>
       </div>
-    </div>;
+    </SidebarProvider>
+  );
 };
+
 export default Dashboard;
