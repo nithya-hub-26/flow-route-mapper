@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import SourceList from "./SourceList";
 import DestinationList from "./DestinationList";
 import RouteHistory from "./RouteHistory";
+import XCodeTemplates from "./XCodeTemplates";
 import { useToast } from "@/hooks/use-toast";
 import { Route as RouteIcon, AlertCircle } from "lucide-react";
 
@@ -154,6 +155,19 @@ const Dashboard = () => {
     );
   };
 
+  // XCode Templates handlers
+  const handleXCodeSourceChange = (sourceId: string) => {
+    setSelectedSources([sourceId]);
+  };
+
+  const handleXCodeDestinationChange = (destinationId: string, checked: boolean) => {
+    setSelectedDestinations(prev => 
+      checked 
+        ? [...prev, destinationId]
+        : prev.filter(id => id !== destinationId)
+    );
+  };
+
   const handleRoute = async () => {
     if (selectedSources.length === 0 || selectedDestinations.length === 0) {
       toast({
@@ -231,6 +245,17 @@ const Dashboard = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        {/* XCode Templates Section */}
+        <XCodeTemplates
+          sources={sources}
+          destinations={destinations}
+          selectedSource={selectedSources[0] || ""}
+          selectedDestinations={selectedDestinations}
+          onSourceChange={handleXCodeSourceChange}
+          onDestinationChange={handleXCodeDestinationChange}
+          loading={loading}
+        />
 
         {/* Sources and Destinations Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
