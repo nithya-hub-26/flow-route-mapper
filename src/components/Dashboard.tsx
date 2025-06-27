@@ -4,8 +4,6 @@ import { parseXMLData } from "@/utils/xmlParser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import SourceList from "./SourceList";
-import DestinationList from "./DestinationList";
 import RouteHistory from "./RouteHistory";
 import XCodeTemplates from "./XCodeTemplates";
 import { useToast } from "@/hooks/use-toast";
@@ -139,22 +137,6 @@ const Dashboard = () => {
     loadRoutes();
   }, []);
 
-  const handleSourceSelection = (sourceId: string, checked: boolean) => {
-    setSelectedSources(prev => 
-      checked 
-        ? [sourceId] // Only allow one source selection
-        : prev.filter(id => id !== sourceId)
-    );
-  };
-
-  const handleDestinationSelection = (destinationId: string, checked: boolean) => {
-    setSelectedDestinations(prev => 
-      checked 
-        ? [...prev, destinationId]
-        : prev.filter(id => id !== destinationId)
-    );
-  };
-
   // XCode Templates handlers
   const handleXCodeSourceChange = (sourceId: string) => {
     setSelectedSources([sourceId]);
@@ -257,45 +239,15 @@ const Dashboard = () => {
           loading={loading}
         />
 
-        {/* Sources and Destinations Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Sources */}
-          <SourceList
-            sources={sources}
-            selectedSources={selectedSources}
-            onSelectionChange={handleSourceSelection}
-            loading={loading}
-          />
-
-          {/* Destinations */}
-          <DestinationList
-            destinations={destinations}
-            selectedDestinations={selectedDestinations}
-            onSelectionChange={handleDestinationSelection}
-            loading={loading}
-          />
-        </div>
-
-        {/* Selection Summary and Route Button */}
+        {/* Route Button */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-6 text-sm text-gray-600">
-                <span className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                  {selectedSources.length} source selected
-                </span>
-                <span className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                  {selectedDestinations.length} destinations selected
-                </span>
-              </div>
-              
+            <div className="flex justify-center">
               <Button
                 onClick={handleRoute}
                 disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading}
                 size="lg"
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto px-8"
               >
                 <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
                 {routing ? 'Creating Route...' : 'Create Route'}
