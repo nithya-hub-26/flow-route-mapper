@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, Code, MapPin, Navigation } from "lucide-react";
+import { ChevronDown, Code, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
 
 interface XCodeTemplatesProps {
   sources: LocationItem[];
@@ -20,7 +20,9 @@ interface XCodeTemplatesProps {
   selectedDestinations: string[];
   onSourceChange: (sourceId: string) => void;
   onDestinationChange: (destinationId: string, checked: boolean) => void;
+  onCreateRoute: () => void;
   loading?: boolean;
+  routing?: boolean;
 }
 
 const XCodeTemplates = ({
@@ -30,7 +32,9 @@ const XCodeTemplates = ({
   selectedDestinations,
   onSourceChange,
   onDestinationChange,
-  loading
+  onCreateRoute,
+  loading,
+  routing
 }: XCodeTemplatesProps) => {
   const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
   const [destinationDropdownOpen, setDestinationDropdownOpen] = useState(false);
@@ -155,6 +159,19 @@ const XCodeTemplates = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </div>
+
+        {/* Create Route Button */}
+        <div className="flex justify-center pt-4">
+          <Button
+            onClick={onCreateRoute}
+            disabled={!selectedSource || selectedDestinations.length === 0 || routing || loading}
+            size="lg"
+            className="w-full sm:w-auto px-8"
+          >
+            <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
+            {routing ? 'Creating Route...' : 'Create Route'}
+          </Button>
         </div>
       </CardContent>
     </Card>

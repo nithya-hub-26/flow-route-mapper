@@ -236,25 +236,10 @@ const Dashboard = () => {
           selectedDestinations={selectedDestinations}
           onSourceChange={handleXCodeSourceChange}
           onDestinationChange={handleXCodeDestinationChange}
+          onCreateRoute={handleRoute}
           loading={loading}
+          routing={routing}
         />
-
-        {/* Route Button */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-center">
-              <Button
-                onClick={handleRoute}
-                disabled={selectedSources.length === 0 || selectedDestinations.length === 0 || routing || loading}
-                size="lg"
-                className="w-full sm:w-auto px-8"
-              >
-                <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
-                {routing ? 'Creating Route...' : 'Create Route'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Route History */}
         <RouteHistory routes={routes} />
