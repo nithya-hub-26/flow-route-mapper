@@ -3,15 +3,32 @@ import { useState } from "react";
 import { LocationItem } from "@/types/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, Code, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDown, Code, MapPin, Navigation, Route as RouteIcon, CalendarIcon, Upload } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface XCodeTemplatesProps {
   sources: LocationItem[];
@@ -38,16 +55,48 @@ const XCodeTemplates = ({
 }: XCodeTemplatesProps) => {
   const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
   const [destinationDropdownOpen, setDestinationDropdownOpen] = useState(false);
+  
+  // Form state
+  const [templateName, setTemplateName] = useState("");
+  const [numDevices, setNumDevices] = useState("");
+  const [startTime, setStartTime] = useState<Date>();
+  const [endTime, setEndTime] = useState<Date>();
+  const [eventInitialization, setEventInitialization] = useState(false);
+  const [videoCodec, setVideoCodec] = useState("");
+  const [audioCodec, setAudioCodec] = useState("");
+  const [resolution, setResolution] = useState("");
+  const [frameRate, setFrameRate] = useState("");
+  const [bitRate, setBitRate] = useState("");
+  const [backupFile, setBackupFile] = useState<File | null>(null);
 
   const selectedSourceItem = sources.find(s => s.id === selectedSource);
   const selectedDestinationCount = selectedDestinations.length;
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setBackupFile(file);
+    }
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (file) {
+      setBackupFile(file);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="w-full max-w-6xl mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="flex items-center justify-center gap-2 text-2xl">
           <Code className="h-6 w-6 text-purple-600" />
-          XCode Templates
+          Codec Templates
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">
@@ -158,6 +207,207 @@ const XCodeTemplates = ({
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Configuration Form */}
+        <div className="border-t pt-8">
+          <h3 className="text-lg font-semibold mb-6 text-gray-800">Template Configuration</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Template Name */}
+            <div className="space-y-2">
+              <Label htmlFor="templateName">Template Name</Label>
+              <Input
+                id="templateName"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Enter template name"
+              />
+            </div>
+
+            {/* Number of Devices */}
+            <div className="space-y-2">
+              <Label htmlFor="numDevices">No of Devices</Label>
+              <Input
+                id="numDevices"
+                type="number"
+                value={numDevices}
+                onChange={(e) => setNumDevices(e.target.value)}
+                placeholder="Enter number of devices"
+              />
+            </div>
+
+            {/* Event Initialization */}
+            <div className="space-y-2">
+              <Label htmlFor="eventInit">Event Initialization</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="eventInit"
+                  checked={eventInitialization}
+                  onCheckedChange={setEventInitialization}
+                />
+                <span className="text-sm text-gray-600">
+                  {eventInitialization ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+            </div>
+
+            {/* Start Time */}
+            <div className="space-y-2">
+              <Label>Start Time</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startTime && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startTime ? format(startTime, "PPP p") : "Select start time"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startTime}
+                    onSelect={setStartTime}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* End Time */}
+            <div className="space-y-2">
+              <Label>End Time</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endTime && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endTime ? format(endTime, "PPP p") : "Select end time"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endTime}
+                    onSelect={setEndTime}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Video Output Codec */}
+            <div className="space-y-2">
+              <Label>Video Output Codec</Label>
+              <Select value={videoCodec} onValueChange={setVideoCodec}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select video codec" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="h264">H.264 (AVC)</SelectItem>
+                  <SelectItem value="h265">H.265 (HEVC)</SelectItem>
+                  <SelectItem value="vp9">VP9</SelectItem>
+                  <SelectItem value="av1">AV1</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Audio Output Codec */}
+            <div className="space-y-2">
+              <Label>Audio Output Codec</Label>
+              <Select value={audioCodec} onValueChange={setAudioCodec}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select audio codec" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mp3">MP3</SelectItem>
+                  <SelectItem value="aac">AAC</SelectItem>
+                  <SelectItem value="flac">FLAC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Resolution */}
+            <div className="space-y-2">
+              <Label htmlFor="resolution">Resolution</Label>
+              <Input
+                id="resolution"
+                value={resolution}
+                onChange={(e) => setResolution(e.target.value)}
+                placeholder="e.g., 1920x1080"
+              />
+            </div>
+
+            {/* Frame Rate */}
+            <div className="space-y-2">
+              <Label>Frame Rate</Label>
+              <Select value={frameRate} onValueChange={setFrameRate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frame rate" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15 fps</SelectItem>
+                  <SelectItem value="30">30 fps</SelectItem>
+                  <SelectItem value="50">50 fps</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Bit Rate */}
+            <div className="space-y-2">
+              <Label>Bit Rate</Label>
+              <Select value={bitRate} onValueChange={setBitRate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select bit rate" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="150">150 mbps</SelectItem>
+                  <SelectItem value="200">200 mbps</SelectItem>
+                  <SelectItem value="250">250 mbps</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Backup File Upload - Full Width */}
+            <div className="space-y-2 md:col-span-2 lg:col-span-3">
+              <Label>Backup</Label>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+              >
+                <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm text-gray-600 mb-2">
+                  {backupFile ? `Selected: ${backupFile.name}` : 'Drag and drop your backup file here, or click to browse'}
+                </p>
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="backup-file"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('backup-file')?.click()}
+                >
+                  Choose File
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -211,6 +211,17 @@ const Dashboard = () => {
     }
   };
 
+  const handleDeleteRoute = (routeId: string) => {
+    const updatedRoutes = routes.filter(route => route.id !== routeId);
+    setRoutes(updatedRoutes);
+    saveRoutes(updatedRoutes);
+    
+    toast({
+      title: "Route Deleted",
+      description: "Route has been successfully removed from history.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-6 space-y-6">
@@ -242,7 +253,7 @@ const Dashboard = () => {
         />
 
         {/* Route History */}
-        <RouteHistory routes={routes} />
+        <RouteHistory routes={routes} onDeleteRoute={handleDeleteRoute} />
       </div>
     </div>
   );
