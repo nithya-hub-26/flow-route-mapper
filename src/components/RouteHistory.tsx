@@ -4,7 +4,7 @@ import { Route } from "@/types/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Navigation, ChevronDown, ChevronRight, Delete } from "lucide-react";
+import { Clock, MapPin, Navigation, ChevronDown, ChevronRight, Trash } from "lucide-react";
 
 interface RouteHistoryProps {
   routes: Route[];
@@ -107,43 +107,39 @@ const RouteHistory = ({ routes, onDeleteRoute }: RouteHistoryProps) => {
                       className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => handleDelete(route.id)}
                     >
-                      <Delete className="h-4 w-4" />
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
 
-                {/* Expanded Content */}
+                {/* Tree View Structure - Expanded Content */}
                 {isExpanded && (
                   <div className="px-4 pb-4 border-t border-gray-100">
                     <div className="pl-8 pt-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
-                          <span className="font-medium">Source:</span>
+                      {/* Source in tree format */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         </div>
-                        <div className="pl-4 mb-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span className="text-sm">{route.source.name}</span>
+                        <span className="font-medium text-sm text-gray-800">{route.source.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {route.source.region}
+                        </Badge>
+                      </div>
+                      
+                      {/* Tree structure for destinations */}
+                      <div className="ml-2 border-l-2 border-gray-200 pl-4">
+                        {route.destinations.map((destination, index) => (
+                          <div key={destination.id} className="flex items-center gap-2 py-1 relative">
+                            {/* Tree connector */}
+                            <div className="absolute -left-4 top-1/2 w-4 h-0.5 bg-gray-200"></div>
+                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                            <span className="text-sm text-gray-700">{destination.name}</span>
                             <Badge variant="outline" className="text-xs">
-                              {route.source.region}
+                              {destination.region}
                             </Badge>
                           </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
-                          <span className="font-medium">Destinations:</span>
-                        </div>
-                        <div className="pl-4 space-y-2">
-                          {route.destinations.map((destination, index) => (
-                            <div key={destination.id} className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span className="text-sm">{destination.name}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {destination.region}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
+                        ))}
                       </div>
                     </div>
                   </div>

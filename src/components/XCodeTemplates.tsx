@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LocationItem } from "@/types/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -72,6 +72,23 @@ const XCodeTemplates = ({
   const selectedSourceItem = sources.find(s => s.id === selectedSource);
   const selectedDestinationCount = selectedDestinations.length;
 
+  // Clear form after route creation
+  useEffect(() => {
+    if (!routing && selectedSource === "" && selectedDestinations.length === 0) {
+      setTemplateName("");
+      setNumDevices("");
+      setStartTime(undefined);
+      setEndTime(undefined);
+      setEventInitialization(false);
+      setVideoCodec("");
+      setAudioCodec("");
+      setResolution("");
+      setFrameRate("");
+      setBitRate("");
+      setBackupFile(null);
+    }
+  }, [routing, selectedSource, selectedDestinations]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -89,6 +106,10 @@ const XCodeTemplates = ({
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+  };
+
+  const formatDateTime = (date: Date) => {
+    return format(date, "PPP p");
   };
 
   return (
@@ -210,8 +231,8 @@ const XCodeTemplates = ({
           </div>
         </div>
 
-        {/* Configuration Form */}
-        <div className="border-t pt-8">
+        {/* Configuration Form - Removed divider */}
+        <div className="pt-4">
           <h3 className="text-lg font-semibold mb-6 text-gray-800">Template Configuration</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -253,7 +274,7 @@ const XCodeTemplates = ({
               </div>
             </div>
 
-            {/* Start Time */}
+            {/* Start Time - Modified for date and time */}
             <div className="space-y-2">
               <Label>Start Time</Label>
               <Popover>
@@ -266,22 +287,42 @@ const XCodeTemplates = ({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startTime ? format(startTime, "PPP p") : "Select start time"}
+                    {startTime ? formatDateTime(startTime) : "Select date and time"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startTime}
-                    onSelect={setStartTime}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <div className="p-3">
+                    <Calendar
+                      mode="single"
+                      selected={startTime}
+                      onSelect={setStartTime}
+                      initialFocus
+                      className={cn("pointer-events-auto")}
+                    />
+                    {startTime && (
+                      <div className="mt-3 border-t pt-3">
+                        <Label className="text-sm">Time</Label>
+                        <Input
+                          type="time"
+                          value={startTime ? format(startTime, "HH:mm") : ""}
+                          onChange={(e) => {
+                            if (startTime && e.target.value) {
+                              const [hours, minutes] = e.target.value.split(':');
+                              const newDate = new Date(startTime);
+                              newDate.setHours(parseInt(hours), parseInt(minutes));
+                              setStartTime(newDate);
+                            }
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
 
-            {/* End Time */}
+            {/* End Time - Modified for date and time */}
             <div className="space-y-2">
               <Label>End Time</Label>
               <Popover>
@@ -294,17 +335,37 @@ const XCodeTemplates = ({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endTime ? format(endTime, "PPP p") : "Select end time"}
+                    {endTime ? formatDateTime(endTime) : "Select date and time"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endTime}
-                    onSelect={setEndTime}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <div className="p-3">
+                    <Calendar
+                      mode="single"
+                      selected={endTime}
+                      onSelect={setEndTime}
+                      initialFocus
+                      className={cn("pointer-events-auto")}
+                    />
+                    {endTime && (
+                      <div className="mt-3 border-t pt-3">
+                        <Label className="text-sm">Time</Label>
+                        <Input
+                          type="time"
+                          value={endTime ? format(endTime, "HH:mm") : ""}
+                          onChange={(e) => {
+                            if (endTime && e.target.value) {
+                              const [hours, minutes] = e.target.value.split(':');
+                              const newDate = new Date(endTime);
+                              newDate.setHours(parseInt(hours), parseInt(minutes));
+                              setEndTime(newDate);
+                            }
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
