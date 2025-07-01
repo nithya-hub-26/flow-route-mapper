@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { LocationItem } from "@/types/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +95,14 @@ const XCodeTemplates = ({
   const handleCreateRoute = () => {
     onCreateRoute();
     clearForm();
+  };
+
+  const handleSourceSelection = (sourceId: string, checked: boolean) => {
+    if (checked) {
+      onSourceChange(sourceId);
+    } else {
+      onSourceChange("");
+    }
   };
 
   if (loading) {
@@ -399,14 +406,14 @@ const XCodeTemplates = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <SourceList
             sources={sources}
-            selectedSource={selectedSource}
-            onSourceChange={onSourceChange}
+            selectedSources={selectedSource ? [selectedSource] : []}
+            onSelectionChange={handleSourceSelection}
           />
           
           <DestinationList
             destinations={destinations}
             selectedDestinations={selectedDestinations}
-            onDestinationChange={onDestinationChange}
+            onSelectionChange={onDestinationChange}
           />
         </div>
 
