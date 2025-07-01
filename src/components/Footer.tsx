@@ -56,9 +56,6 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-          <p className="text-gray-400 text-sm">
-            © 2025 Synamedia. All Rights Reserved
-          </p>
         </div>
       </div>
     </footer>
