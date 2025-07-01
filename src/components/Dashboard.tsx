@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { LocationItem, RouteRequest, Route } from "@/types/dashboard";
 import { parseXMLData } from "@/utils/xmlParser";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Header from "./Header";
+import Footer from "./Footer";
 import RouteHistory from "./RouteHistory";
 import XCodeTemplates from "./XCodeTemplates";
 import { useToast } from "@/hooks/use-toast";
-import { Route as RouteIcon, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 const Dashboard = () => {
   const [sources, setSources] = useState<LocationItem[]>([]);
@@ -223,17 +223,13 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900">Routing Dashboard</h1>
-          <p className="text-lg text-gray-600">Select one source and multiple destinations to create routes</p>
-        </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <Header />
+      
+      <div className="container mx-auto p-6 space-y-8">
         {/* Error Alert */}
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="shadow-lg">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -255,6 +251,8 @@ const Dashboard = () => {
         {/* Route History */}
         <RouteHistory routes={routes} onDeleteRoute={handleDeleteRoute} />
       </div>
+
+      <Footer />
     </div>
   );
 };

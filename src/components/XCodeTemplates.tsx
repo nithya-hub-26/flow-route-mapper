@@ -1,34 +1,18 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LocationItem } from "@/types/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChevronDown, Code, MapPin, Navigation, Route as RouteIcon, CalendarIcon, Upload } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { AlertCircle, Route as RouteIcon, Upload, Calendar, Settings, Monitor, Speaker, Clapperboard, Zap } from "lucide-react";
+import SourceList from "./SourceList";
+import DestinationList from "./DestinationList";
 
 interface XCodeTemplatesProps {
   sources: LocationItem[];
@@ -38,8 +22,8 @@ interface XCodeTemplatesProps {
   onSourceChange: (sourceId: string) => void;
   onDestinationChange: (destinationId: string, checked: boolean) => void;
   onCreateRoute: () => void;
-  loading?: boolean;
-  routing?: boolean;
+  loading: boolean;
+  routing: boolean;
 }
 
 const XCodeTemplates = ({
@@ -51,331 +35,235 @@ const XCodeTemplates = ({
   onDestinationChange,
   onCreateRoute,
   loading,
-  routing
+  routing,
 }: XCodeTemplatesProps) => {
-  const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
-  const [destinationDropdownOpen, setDestinationDropdownOpen] = useState(false);
-  
-  // Form state
+  // Template configuration state
   const [templateName, setTemplateName] = useState("");
   const [numDevices, setNumDevices] = useState("");
-  const [startTime, setStartTime] = useState<Date>();
-  const [endTime, setEndTime] = useState<Date>();
-  const [eventInitialization, setEventInitialization] = useState(false);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [eventInit, setEventInit] = useState(false);
   const [videoCodec, setVideoCodec] = useState("");
   const [audioCodec, setAudioCodec] = useState("");
   const [resolution, setResolution] = useState("");
   const [frameRate, setFrameRate] = useState("");
-  const [bitRate, setBitRate] = useState("");
+  const [selectedBitRates, setSelectedBitRates] = useState<string[]>([]);
   const [backupFile, setBackupFile] = useState<File | null>(null);
+  
+  // Additional form fields
+  const [priority, setPriority] = useState("");
+  const [networkType, setNetworkType] = useState("");
+  const [encryption, setEncryption] = useState(false);
+  const [monitoring, setMonitoring] = useState(false);
+  const [description, setDescription] = useState("");
+  const [tags, setTags] = useState("");
 
-  const selectedSourceItem = sources.find(s => s.id === selectedSource);
-  const selectedDestinationCount = selectedDestinations.length;
+  const bitRateOptions = ["150 mbps", "200 mbps", "250 mbps"];
 
-  // Clear form after route creation
-  useEffect(() => {
-    if (!routing && selectedSource === "" && selectedDestinations.length === 0) {
-      setTemplateName("");
-      setNumDevices("");
-      setStartTime(undefined);
-      setEndTime(undefined);
-      setEventInitialization(false);
-      setVideoCodec("");
-      setAudioCodec("");
-      setResolution("");
-      setFrameRate("");
-      setBitRate("");
-      setBackupFile(null);
-    }
-  }, [routing, selectedSource, selectedDestinations]);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setBackupFile(file);
-    }
+  const handleBitRateToggle = (bitRate: string) => {
+    setSelectedBitRates(prev => 
+      prev.includes(bitRate) 
+        ? prev.filter(rate => rate !== bitRate)
+        : [...prev, bitRate]
+    );
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files?.[0];
-    if (file) {
-      setBackupFile(file);
-    }
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
+    setBackupFile(file);
   };
 
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
+  const clearForm = () => {
+    setTemplateName("");
+    setNumDevices("");
+    setStartTime("");
+    setEndTime("");
+    setEventInit(false);
+    setVideoCodec("");
+    setAudioCodec("");
+    setResolution("");
+    setFrameRate("");
+    setSelectedBitRates([]);
+    setBackupFile(null);
+    setPriority("");
+    setNetworkType("");
+    setEncryption(false);
+    setMonitoring(false);
+    setDescription("");
+    setTags("");
   };
 
-  const formatDateTime = (date: Date) => {
-    return format(date, "PPP p");
+  const handleCreateRoute = () => {
+    onCreateRoute();
+    clearForm();
   };
+
+  if (loading) {
+    return (
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
+        <CardContent className="p-8">
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading codec templates...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="w-full max-w-6xl mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-          <Code className="h-6 w-6 text-purple-600" />
+    <Card className="shadow-xl border-0 bg-gradient-to-br from-white via-blue-50 to-purple-50">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <Settings className="h-6 w-6" />
           Codec Templates
         </CardTitle>
+        <p className="text-blue-100 mt-2">Configure your streaming parameters and route settings</p>
       </CardHeader>
-      <CardContent className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Source Selection */}
-          <div className="space-y-3">
-            <Label className="text-base font-semibold flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-blue-600" />
-              Source
-            </Label>
-            <DropdownMenu open={sourceDropdownOpen} onOpenChange={setSourceDropdownOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between h-12 text-left px-4"
-                  disabled={loading || sources.length === 0}
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">
-                      {selectedSourceItem ? selectedSourceItem.name : "Select a source"}
-                    </span>
-                    {selectedSourceItem && (
-                      <span className="text-xs text-gray-500">{selectedSourceItem.region}</span>
-                    )}
-                  </div>
-                  <ChevronDown className="h-4 w-4 shrink-0" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-96 p-4 bg-white border shadow-lg max-h-80 overflow-y-auto">
-                <div className="mb-2">
-                  <h4 className="font-medium text-sm text-gray-700 mb-3">Choose a source location:</h4>
-                </div>
-                <RadioGroup value={selectedSource} onValueChange={onSourceChange}>
-                  <div className="space-y-1">
-                    {sources.map((source) => (
-                      <div key={source.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all duration-200">
-                        <RadioGroupItem value={source.id} id={`source-${source.id}`} className="mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <label
-                            htmlFor={`source-${source.id}`}
-                            className="block text-sm font-medium text-gray-900 cursor-pointer"
-                          >
-                            {source.name}
-                          </label>
-                          <p className="text-xs text-gray-500 mt-0.5">{source.region}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </RadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Destination Selection */}
-          <div className="space-y-3">
-            <Label className="text-base font-semibold flex items-center gap-2">
-              <Navigation className="h-5 w-5 text-green-600" />
-              Destination
-            </Label>
-            <DropdownMenu open={destinationDropdownOpen} onOpenChange={setDestinationDropdownOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between h-12 text-left px-4"
-                  disabled={loading || destinations.length === 0}
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">
-                      {selectedDestinationCount > 0 
-                        ? `${selectedDestinationCount} destination${selectedDestinationCount > 1 ? 's' : ''} selected`
-                        : "Select destinations"
-                      }
-                    </span>
-                    {selectedDestinationCount > 0 && (
-                      <span className="text-xs text-gray-500">
-                        {selectedDestinationCount === 1 ? "1 location" : `${selectedDestinationCount} locations`}
-                      </span>
-                    )}
-                  </div>
-                  <ChevronDown className="h-4 w-4 shrink-0" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-96 p-4 bg-white border shadow-lg max-h-80 overflow-y-auto">
-                <div className="mb-2">
-                  <h4 className="font-medium text-sm text-gray-700 mb-3">Choose destination locations:</h4>
-                </div>
-                <div className="space-y-1">
-                  {destinations.map((destination) => (
-                    <div key={destination.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all duration-200">
-                      <Checkbox
-                        id={`destination-${destination.id}`}
-                        checked={selectedDestinations.includes(destination.id)}
-                        onCheckedChange={(checked) => onDestinationChange(destination.id, !!checked)}
-                        className="mt-0.5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <label
-                          htmlFor={`destination-${destination.id}`}
-                          className="block text-sm font-medium text-gray-900 cursor-pointer"
-                        >
-                          {destination.name}
-                        </label>
-                        <p className="text-xs text-gray-500 mt-0.5">{destination.region}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Configuration Form - Removed divider */}
-        <div className="pt-4">
-          <h3 className="text-lg font-semibold mb-6 text-gray-800">Template Configuration</h3>
+      
+      <CardContent className="p-8 space-y-8">
+        {/* Template Configuration */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Clapperboard className="h-5 w-5 text-purple-600" />
+            Template Configuration
+          </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Template Name */}
             <div className="space-y-2">
-              <Label htmlFor="templateName">Template Name</Label>
+              <Label htmlFor="templateName" className="text-sm font-medium text-gray-700">Template Name</Label>
               <Input
                 id="templateName"
+                placeholder="Enter template name"
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="Enter template name"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             {/* Number of Devices */}
             <div className="space-y-2">
-              <Label htmlFor="numDevices">No of Devices</Label>
+              <Label htmlFor="numDevices" className="text-sm font-medium text-gray-700">Number of Devices</Label>
               <Input
                 id="numDevices"
                 type="number"
+                placeholder="0"
                 value={numDevices}
                 onChange={(e) => setNumDevices(e.target.value)}
-                placeholder="Enter number of devices"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
-            {/* Event Initialization */}
+            {/* Priority */}
             <div className="space-y-2">
-              <Label htmlFor="eventInit">Event Initialization</Label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="eventInit"
-                  checked={eventInitialization}
-                  onCheckedChange={setEventInitialization}
-                />
-                <span className="text-sm text-gray-600">
-                  {eventInitialization ? 'Enabled' : 'Disabled'}
-                </span>
-              </div>
+              <Label htmlFor="priority" className="text-sm font-medium text-gray-700">Priority Level</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Start Time - Modified for date and time */}
+            {/* Start Time */}
             <div className="space-y-2">
-              <Label>Start Time</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startTime && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startTime ? formatDateTime(startTime) : "Select date and time"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-3">
-                    <Calendar
-                      mode="single"
-                      selected={startTime}
-                      onSelect={setStartTime}
-                      initialFocus
-                      className={cn("pointer-events-auto")}
-                    />
-                    {startTime && (
-                      <div className="mt-3 border-t pt-3">
-                        <Label className="text-sm">Time</Label>
-                        <Input
-                          type="time"
-                          value={startTime ? format(startTime, "HH:mm") : ""}
-                          onChange={(e) => {
-                            if (startTime && e.target.value) {
-                              const [hours, minutes] = e.target.value.split(':');
-                              const newDate = new Date(startTime);
-                              newDate.setHours(parseInt(hours), parseInt(minutes));
-                              setStartTime(newDate);
-                            }
-                          }}
-                          className="mt-1"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="startTime" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                Start Date & Time
+              </Label>
+              <Input
+                id="startTime"
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
             </div>
 
-            {/* End Time - Modified for date and time */}
+            {/* End Time */}
             <div className="space-y-2">
-              <Label>End Time</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endTime && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endTime ? formatDateTime(endTime) : "Select date and time"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-3">
-                    <Calendar
-                      mode="single"
-                      selected={endTime}
-                      onSelect={setEndTime}
-                      initialFocus
-                      className={cn("pointer-events-auto")}
-                    />
-                    {endTime && (
-                      <div className="mt-3 border-t pt-3">
-                        <Label className="text-sm">Time</Label>
-                        <Input
-                          type="time"
-                          value={endTime ? format(endTime, "HH:mm") : ""}
-                          onChange={(e) => {
-                            if (endTime && e.target.value) {
-                              const [hours, minutes] = e.target.value.split(':');
-                              const newDate = new Date(endTime);
-                              newDate.setHours(parseInt(hours), parseInt(minutes));
-                              setEndTime(newDate);
-                            }
-                          }}
-                          className="mt-1"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="endTime" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                End Date & Time
+              </Label>
+              <Input
+                id="endTime"
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
             </div>
 
-            {/* Video Output Codec */}
+            {/* Network Type */}
             <div className="space-y-2">
-              <Label>Video Output Codec</Label>
+              <Label htmlFor="networkType" className="text-sm font-medium text-gray-700">Network Type</Label>
+              <Select value={networkType} onValueChange={setNetworkType}>
+                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                  <SelectValue placeholder="Select network" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ethernet">Ethernet</SelectItem>
+                  <SelectItem value="wifi">Wi-Fi</SelectItem>
+                  <SelectItem value="cellular">Cellular</SelectItem>
+                  <SelectItem value="satellite">Satellite</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Switches Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <Label htmlFor="eventInit" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-yellow-600" />
+                Event Initialization
+              </Label>
+              <Switch
+                id="eventInit"
+                checked={eventInit}
+                onCheckedChange={setEventInit}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <Label htmlFor="encryption" className="text-sm font-medium text-gray-700">Enable Encryption</Label>
+              <Switch
+                id="encryption"
+                checked={encryption}
+                onCheckedChange={setEncryption}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <Label htmlFor="monitoring" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-green-600" />
+                Real-time Monitoring
+              </Label>
+              <Switch
+                id="monitoring"
+                checked={monitoring}
+                onCheckedChange={setMonitoring}
+              />
+            </div>
+          </div>
+
+          {/* Codec Settings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="videoCodec" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Monitor className="h-4 w-4" />
+                Video Output Codec
+              </Label>
               <Select value={videoCodec} onValueChange={setVideoCodec}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select video codec" />
+                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                  <SelectValue placeholder="Select codec" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="h264">H.264 (AVC)</SelectItem>
@@ -386,12 +274,14 @@ const XCodeTemplates = ({
               </Select>
             </div>
 
-            {/* Audio Output Codec */}
             <div className="space-y-2">
-              <Label>Audio Output Codec</Label>
+              <Label htmlFor="audioCodec" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Speaker className="h-4 w-4" />
+                Audio Output Codec
+              </Label>
               <Select value={audioCodec} onValueChange={setAudioCodec}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select audio codec" />
+                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                  <SelectValue placeholder="Select codec" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="mp3">MP3</SelectItem>
@@ -401,23 +291,22 @@ const XCodeTemplates = ({
               </Select>
             </div>
 
-            {/* Resolution */}
             <div className="space-y-2">
-              <Label htmlFor="resolution">Resolution</Label>
+              <Label htmlFor="resolution" className="text-sm font-medium text-gray-700">Resolution</Label>
               <Input
                 id="resolution"
+                placeholder="1920x1080"
                 value={resolution}
                 onChange={(e) => setResolution(e.target.value)}
-                placeholder="e.g., 1920x1080"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
-            {/* Frame Rate */}
             <div className="space-y-2">
-              <Label>Frame Rate</Label>
+              <Label htmlFor="frameRate" className="text-sm font-medium text-gray-700">Frame Rate</Label>
               <Select value={frameRate} onValueChange={setFrameRate}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select frame rate" />
+                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                  <SelectValue placeholder="Select FPS" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="15">15 fps</SelectItem>
@@ -426,64 +315,133 @@ const XCodeTemplates = ({
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            {/* Bit Rate */}
-            <div className="space-y-2">
-              <Label>Bit Rate</Label>
-              <Select value={bitRate} onValueChange={setBitRate}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select bit rate" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="150">150 mbps</SelectItem>
-                  <SelectItem value="200">200 mbps</SelectItem>
-                  <SelectItem value="250">250 mbps</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Bit Rate List View */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">Bit Rate Options</Label>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-2 max-h-32 overflow-y-auto">
+              {bitRateOptions.map((bitRate) => (
+                <label key={bitRate} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                  <input
+                    type="checkbox"
+                    checked={selectedBitRates.includes(bitRate)}
+                    onChange={() => handleBitRateToggle(bitRate)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{bitRate}</span>
+                </label>
+              ))}
             </div>
-
-            {/* Backup File Upload - Full Width */}
-            <div className="space-y-2 md:col-span-2 lg:col-span-3">
-              <Label>Backup</Label>
-              <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-              >
-                <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600 mb-2">
-                  {backupFile ? `Selected: ${backupFile.name}` : 'Drag and drop your backup file here, or click to browse'}
-                </p>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="backup-file"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('backup-file')?.click()}
-                >
-                  Choose File
-                </Button>
+            {selectedBitRates.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedBitRates.map((bitRate) => (
+                  <Badge key={bitRate} variant="secondary" className="bg-blue-100 text-blue-700">
+                    {bitRate}
+                  </Badge>
+                ))}
               </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Enter template description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[80px]"
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-2">
+            <Label htmlFor="tags" className="text-sm font-medium text-gray-700">Tags (comma-separated)</Label>
+            <Input
+              id="tags"
+              placeholder="streaming, live, broadcast"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Backup File Upload */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Backup Configuration
+            </Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="backupFile"
+                accept=".json,.xml,.config"
+              />
+              <label htmlFor="backupFile" className="cursor-pointer">
+                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">
+                  {backupFile ? backupFile.name : "Click to upload backup file or drag and drop"}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">JSON, XML, CONFIG files only</p>
+              </label>
             </div>
           </div>
         </div>
 
+        <Separator className="my-8" />
+
+        {/* Source and Destination Selection */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <SourceList
+            sources={sources}
+            selectedSource={selectedSource}
+            onSourceChange={onSourceChange}
+          />
+          
+          <DestinationList
+            destinations={destinations}
+            selectedDestinations={selectedDestinations}
+            onDestinationChange={onDestinationChange}
+          />
+        </div>
+
         {/* Create Route Button */}
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-center pt-6">
           <Button
-            onClick={onCreateRoute}
-            disabled={!selectedSource || selectedDestinations.length === 0 || routing || loading}
-            size="lg"
-            className="w-full sm:w-auto px-8"
+            onClick={handleCreateRoute}
+            disabled={!selectedSource || selectedDestinations.length === 0 || routing}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-xl"
           >
-            <RouteIcon className={`h-4 w-4 mr-2 ${routing ? 'animate-pulse' : ''}`} />
-            {routing ? 'Creating Route...' : 'Create Route'}
+            {routing ? (
+              <>
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Creating Route...
+              </>
+            ) : (
+              <>
+                <RouteIcon className="mr-2 h-5 w-5" />
+                Create Route
+              </>
+            )}
           </Button>
         </div>
+
+        {/* Selection Summary */}
+        {(selectedSource || selectedDestinations.length > 0) && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <span>
+                Selected: {selectedSource ? "1 source" : "No source"} → {selectedDestinations.length} destination(s)
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
